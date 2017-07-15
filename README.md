@@ -38,7 +38,9 @@ or to make sure to override any previously interrupted conversions:
 Please note, that *converting* videos will take time and effort from your computer. As an example fairly recent MacBook laptop spent some 30 hours converting DVD (with mpeg2video) to WEBM  - converted track was approximately 22 minutes long. On the other hand "conversion" to MPEG-4 video is actually just a copy of the original DVD track, so it took around one minute.
 
 ## References
-[FFmpeg](https://www.ffmpeg.org) is the converter the script uses, and it has a very useful [Documentation page](https://www.ffmpeg.org/ffmpeg.html#Video-and-Audio-file-format-conversion). 
+
+This script relies fully on [FFmpeg](https://www.ffmpeg.org) converter. It has a very useful [Documentation page](https://www.ffmpeg.org/ffmpeg.html). 
+
 ---
 
 **NOTE:** This script does not handle DRM locked DVDs at all (feel free to try). Script is targeted for people willing to store old home DVDs (cinema, VHS) in more modern formats for example in USB sticks. However, as the [license](https://github.com/rpsu/dvd_converter/blob/master/LICENSE) is states, feel free to modify it to suit to you needs. 
