@@ -1,24 +1,24 @@
 #!/bin/bash
-
+# 
+# Author: Perttu Ehn, @ropsue
+# Source: https://github.com/rpsu/dvd_converter
+# License: GPLv3, @see file LICENSE for more information
+# 
 # = = = = = = =
-# Prequisities:
-# 1) Install ffmpeg. Most likely as as simple as
-# $ brew install ffmpeg
-# (provided you're on OS X and have Homebrew installed). 
-#  
-
-# Change this to where ever you've mounted your DVD. This assumes also that you
-# are using OS X, since the mounted DVD's are found under /Volumes directory.
-src_dir="/Volumes/$1";
-target_dir="$HOME/$2";
-overwrite="$3";
+# Change this to where ever you've mounted your DVD. This assumes
+# also that you are using OS X, since the mounted DVD's are found
+# under /Volumes directory.
+src_dir="/Volumes/$1"
+target_dir="$HOME/$2"
+overwrite="$3"
 
 # CONVERSION FLAGS. NOTE that you may convert DVD to different formats in a row.
-MP4=1
+MP4=0
 WEBM=1
 OGG=0
 
-
+# Make sure we have at least 1st and 2nd arguments. 
+# 3rd argument is optional, but must be 1 (numeric one) if present.
 if [ ! -d "$src_dir" ]; then
   echo "Source dir '$src_dir' does not exists. Your 1st argument must be a folder inside /Volumes, for example Matrix for /Volumes/Matrix."
   exit 1
@@ -26,6 +26,17 @@ fi
 if [ ! -d "$target_dir" ]; then
   echo "Target dir '$target_dir' does not exists. Your 2nd argument must be an existing folder inside your home directory, for example 'Desktop/convert' for /Volumes/$HOME/Desktop/convert."
   exit 1
+fi
+if [ ! -z "$overwrite" ] && [ "$overwrite" != "1" ]; then
+  echo "3rd parameter must be '1' if present. It means you will" echo "override any previously converted videos. "
+  echo "** Be careful if you are using it! **"
+  exit 1
+else
+  if [ "$overwrite" == "1" ]; then
+    echo 'You are going to destroy previously converted files,' 
+    echo 'right - even if they would be fully converted already? If not, hit "CMD + C" RIGHT NOW (waiting 3 secs in case you regret your descision...)'
+    sleep 3
+    echo 'Continuing...'
 fi
 
 # Clean up all possible previously build tracks list files.
