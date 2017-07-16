@@ -12,6 +12,11 @@ src_dir="/Volumes/$1"
 src_name="$1"
 target_dir="$HOME/$2"
 overwrite="$3"
+verbosity="$4"
+
+if [ -z $verbosity ]; then
+  verbosity="error"
+fi
 
 # Output colors:
 RED='\033[0;31m'
@@ -21,8 +26,8 @@ NC='\033[0m' # No Color
 
 START=$(date +%s)
 # CONVERSION FLAGS. NOTE that you may convert DVD to different formats in a row.
-MP4=1
-WEBM=1
+MP4=0
+WEBM=0
 OGG=1
 
 # Make sure we have 2 requiree arguments. 
@@ -55,10 +60,24 @@ else
     echo 'You are going to destroy previously converted files,' 
     echo 'right - even if they would be fully converted already?'
     echo 'If not, hit "CMD + C" RIGHT NOW (waiting 3 secs in case'
-    echo 'you regret your descision...)'
+    echo 'you regret your decision...)'
     sleep 3
     echo 'Continuing...'
   fi
+fi
+# 4th argument is optional, but must match a valid "ffmpeg -loglevel" -value.
+if [ $verbosity != 'quiet' ] && 
+   [ $verbosity != 'panic' ] &&
+   [ $verbosity != 'fatal' ] &&
+   [ $verbosity != 'error' ] &&
+   [ $verbosity != 'info' ] && 
+   [ $verbosity != 'verbose' ] &&
+   [ $verbosity != 'debug' ] &&
+   [ $verbosity != 'trace' ]; then
+  echo -e "${RED}ERROR: Verbosity level (4th argument) is not a valid value."
+  echo "See 'man ffmpeg' and '-loglevel' -argument for valid values. "
+  echo -e "${NC}"
+  exit 1
 fi
 
 # Clean up all possible previously build tracks list files.
@@ -117,7 +136,7 @@ for track in {1..99}; do
         sleep 3
       else 
         echo "$trackname.mp4 not yet converted. Start working at $(date)." | tee -a $target_dir/dvd_$(echo $src_name).log
-        cmd="ffmpeg -f concat -safe 0 -i "$track_parts_list" -c copy -b:v 800k -g 300 -bf 2 -an $trackname.mp4"
+        cmd="ffmpeg -v warning -f concat -safe 0 -i "$track_parts_list" -c copy -b:v 800k -b:a 128k -g 300 -bf 2  $trackname.mp4"
         echo $cmd | tee -a $target_dir/dvd_$(echo $src_name).log
         $cmd
         echo "$trackname.mp4 converted. Finished working at $(date)." | tee -a $target_dir/dvd_$(echo $src_name).log
@@ -126,7 +145,7 @@ for track in {1..99}; do
     
     if [ "$WEBM" == "1" ]; then
       ### .WEBM -format (slow, becase of re-encoding) ###
-      # vp8 videe codec, no audio ('-an') 
+      # vp8 videe codec, audio as MP3
       # This will compress video a lot, 1Gb MPEG-2 video will become 150 MB 
       # (85 % of the original size!).
       if [ -f $trackname.webm ]; then
@@ -136,7 +155,7 @@ for track in {1..99}; do
       else 
         echo "$trackname.webm not yet converted. Start working at $(date)."  | tee -a $target_dir/dvd_$(echo $src_name).log
         # Convert vidos to WEBM. 
-        cmd="ffmpeg -f concat -safe 0 -i "$track_parts_list" -c:v vp9 -an -b:v 1000k -crf 10 -strict -2 $trackname.webm"
+        cmd="ffmpeg -v warning -f concat -safe 0 -i "$track_parts_list" -c:v vp9 -b:v 1000k -c:a libmp3lame -b:a 128k -crf 10 -strict -2 $trackname.webm"
         echo $cmd | tee -a $target_dir/dvd_$(echo $src_name).log
         $cmd
         echo "$trackname.webm converted. Finished working at $(date)." | tee -a $target_dir/dvd_$(echo $src_name).log
@@ -151,7 +170,7 @@ for track in {1..99}; do
         sleep 3
       else 
         echo "$trackname.ogv not yet converted. Start working at $(date)." | tee -a $target_dir/dvd_$(echo $src_name).log
-        cmd="ffmpeg -f concat -safe 0 -i "$track_parts_list" -an $trackname.ogv"
+        cmd="ffmpeg -v warning -f concat -safe 0 -i "$track_parts_list" -c:v libvpx -crf 10 -b:v 1M -c:a libvorbis $trackname.ogv"
         echo $cmd | tee -a $target_dir/dvd_$(echo $src_name).log
         $cmd
         echo "$trackname.ogv converted. Finished working at $(date)." | tee -a $target_dir/dvd_$(echo $src_name).log
