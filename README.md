@@ -27,17 +27,20 @@ If you're facing any issues, check the [Issue queue](https://github.com/rpsu/dvd
 3. Create a target folder inside you Home directory. 
 **Example:** Create folder in ```~/Desktop/converted_videos```
 4. Use the script. Source (-s, --source), destination (-d, --destination) and 
-mode (-m, --mode) are required values. Optionally you may select the ```ffmpeg```
-conversion process verbosity with -v or --verbosity (default 'error') flags,
-and choose to blindly delete any existing target files with -o=1 (default 0).  
-```$ bash converter.sh --source=SRC --destination=DEST --mode=MP4```  
+  mode (-m, --mode) are required values. Optionally you may select the ```ffmpeg```
+  conversion process verbosity with -v or --verbosity (default is 'error') flags,
+  and choose to blindly delete any existing target files with -o=1 (default is 0).  
+  ```$ bash converter.sh --source=SRC --destination=DEST --mode=MP4```  
 
-  **Example:**  
-  ```$ bash converter.sh --source=Family_vacation --destination=Desktop/converted_videos --mode=MP4,WEBM```  
-  To  make sure to override any previously interrupted conversions:  
-  ```$ bash converter.sh -s=Family_vacation -d=Desktop/converted_videos -m=WEBM -o=1 -v=info```  
-  To make conversion more verbose, set verbosity -parameter to a valid [ffmpeg -loglevel](https://www.ffmpeg.org/ffmpeg.html#Generic-options) -value, such as 'info' (defaults to 'error'):  
-  ```$ bash converter.sh -s=Family_vacation -d=Desktop/converted_videos -m=MP4,WEBM,OGV -v=debug ```  
+**Example:**  
+Convert your _Family_vacation_ -DVD to both MP4 and WEBM video in one go:  
+```$ bash converter.sh --source=Family_vacation --destination=Desktop/converted_videos --mode=MP4,WEBM```  
+
+Make sure any previously existing destination files are removed by using **-o** -flag:  
+```$ bash converter.sh -s=Family_vacation -d=Desktop/converted_videos -m=WEBM -o=1 -v=info```  
+
+To make conversion process more verbose, set **--verbosity** -parameter to a valid [ffmpeg -loglevel](https://www.ffmpeg.org/ffmpeg.html#Generic-options) -value, such as 'info' (default is 'error'):  
+```$ bash converter.sh -s=Family_vacation -d=Desktop/converted_videos -m=MP4,WEBM,OGV -v=debug ```  
 
 ## Warning
 
