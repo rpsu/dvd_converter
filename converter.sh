@@ -19,9 +19,10 @@ GRN='\033[0;32m'
 YLLW='\033[1;33m'
 NC='\033[0m' # No Color
 
+START=$(date +%s)
 # CONVERSION FLAGS. NOTE that you may convert DVD to different formats in a row.
 MP4=1
-WEBM=0
+WEBM=1
 OGG=1
 
 # Make sure we have 2 requiree arguments. 
@@ -158,8 +159,11 @@ for track in {1..99}; do
     fi
   fi
 done
-echo -e "${GRN}DVD $src_name converted.${NC}"
-ls -lha $target_dir
-echo 
-echo 
+
+DURATION=$(( $(date +%s) - $START))
+
+echo -e -n "${GRN}DVD $src_name converted.${NC} "
+echo -e -n "Conversion took " | tee -a $target_dir/dvd_$(echo $src_name).log
+printf '%dh:%dm:%ds\n' $(($DURATION/3600)) $(($DURATION%3600/60)) $(($DURATION%60)) | tee -a $target_dir/dvd_$(echo $src_name).log
+echo "Finished at $(date)." | tee -a $target_dir/dvd_$(echo $src_name).log
 echo 
