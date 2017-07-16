@@ -26,8 +26,8 @@ NC='\033[0m' # No Color
 
 START=$(date +%s)
 # CONVERSION FLAGS. NOTE that you may convert DVD to different formats in a row.
-MP4=0
-WEBM=0
+MP4=1
+WEBM=1
 OGG=1
 
 # Make sure we have 2 requiree arguments. 
