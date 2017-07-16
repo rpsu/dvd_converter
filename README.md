@@ -29,7 +29,7 @@ If you're facing any issues, check the [Issue queue](https://github.com/rpsu/dvd
 1. Use the script. Source (-s, --source), destination (-d, --destination) and 
 mode (-m, --mode) are required values. Optionally you may select the ```ffmpeg```
 conversion process verbosity with -v or --verbosity (default 'error') flags,
-and choose to blindly delete any existing target files with -o=1 (default  0). 
+and choose to blindly delete any existing target files with -o=1 (default 0).  
 ```$ bash converter.sh --source=SRC --destination=DEST --mode=MP4```  
 **Example:** 
 ```$ bash converter.sh --source=Family_vacation --destination=Desktop/converted_videos --mode=MP4,WEBM```  
