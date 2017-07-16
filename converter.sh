@@ -136,7 +136,7 @@ for track in {1..99}; do
         sleep 3
       else 
         echo "$trackname.mp4 not yet converted. Start working at $(date)." | tee -a $target_dir/dvd_$(echo $src_name).log
-        cmd="ffmpeg -v $verbosity -f concat -safe 0 -i "$track_parts_list" -c copy -b:v 800k -b:a 128k -g 300 -bf 2  $trackname.mp4"
+        cmd="ffmpeg -v $verbosity -hide_banner -f concat -safe 0 -i "$track_parts_list" -c copy -b:v 800k -b:a 128k -g 300 -bf 2  $trackname.mp4"
         echo $cmd | tee -a $target_dir/dvd_$(echo $src_name).log
         $cmd
         echo "$trackname.mp4 converted. Finished working at $(date)." | tee -a $target_dir/dvd_$(echo $src_name).log
@@ -155,7 +155,7 @@ for track in {1..99}; do
       else 
         echo "$trackname.webm not yet converted. Start working at $(date)."  | tee -a $target_dir/dvd_$(echo $src_name).log
         # Convert vidos to WEBM. 
-        cmd="ffmpeg -v $verbosity -f concat -safe 0 -i "$track_parts_list" -c:v vp9 -b:v 1000k -c:a libmp3lame -b:a 128k -crf 10 -strict -2 $trackname.webm"
+        cmd="ffmpeg -v $verbosity -hide_banner -f concat -safe 0 -i "$track_parts_list" -c:v vp9 -b:v 1000k -c:a libmp3lame -b:a 128k -crf 10 -strict -2 $trackname.webm"
         echo $cmd | tee -a $target_dir/dvd_$(echo $src_name).log
         $cmd
         echo "$trackname.webm converted. Finished working at $(date)." | tee -a $target_dir/dvd_$(echo $src_name).log
@@ -170,7 +170,7 @@ for track in {1..99}; do
         sleep 3
       else 
         echo "$trackname.ogv not yet converted. Start working at $(date)." | tee -a $target_dir/dvd_$(echo $src_name).log
-        cmd="ffmpeg -v $verbosity -f concat -safe 0 -i "$track_parts_list" -c:v libvpx -crf 10 -b:v 1M -c:a libvorbis $trackname.ogv"
+        cmd="ffmpeg -v $verbosity -hide_banner -f concat -safe 0 -i "$track_parts_list" -c:v libvpx -crf 10 -b:v 1M -c:a libvorbis $trackname.ogv"
         echo $cmd | tee -a $target_dir/dvd_$(echo $src_name).log
         $cmd
         echo "$trackname.ogv converted. Finished working at $(date)." | tee -a $target_dir/dvd_$(echo $src_name).log
