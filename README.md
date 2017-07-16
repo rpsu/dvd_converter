@@ -37,9 +37,9 @@ Convert your _Family_vacation_ -DVD to both MP4 and WEBM video in one go:
 ```$ bash converter.sh --source=Family_vacation --destination=Desktop/converted_videos --mode=MP4,WEBM```  
 
 Make sure any previously existing destination files are removed by using **-o** -flag:  
-```$ bash converter.sh -s=Family_vacation -d=Desktop/converted_videos -m=WEBM -o=1 -v=info```  
+```$ bash converter.sh -s=Family_vacation -d=Desktop/converted_videos -m=MP4,WEBM -o=1```  
 
-To make conversion process more verbose, set **--verbosity** -parameter to a valid [ffmpeg -loglevel](https://www.ffmpeg.org/ffmpeg.html#Generic-options) -value, such as 'info' (default is 'error'):  
+To make conversion process more verbose, set **--verbosity** -parameter to a valid [ffmpeg -loglevel](https://www.ffmpeg.org/ffmpeg.html#Generic-options) -value, such as 'info' (default is 'error'). Also convert to OGV along with MP4 and WEBM:  
 ```$ bash converter.sh -s=Family_vacation -d=Desktop/converted_videos -m=MP4,WEBM,OGV -v=debug ```  
 
 ## Warning
@@ -48,7 +48,10 @@ Please note, that *converting* videos will take time and effort from your comput
 
 ## References
 
-This script relies fully on [FFmpeg](https://www.ffmpeg.org) converter. It has a very useful [Documentation page](https://www.ffmpeg.org/ffmpeg.html). 
+This script relies fully on [FFmpeg](https://www.ffmpeg.org) converter. It has a 
+very useful [Documentation page](https://www.ffmpeg.org/ffmpeg.html). When you 
+are at it take also look at the [encoding section in FFmpeg wiki](https://trac.ffmpeg.org/wiki#Encoding). **Some very good stuff, if you are in need of altering
+the conversion details here.**
 
 ---
 
