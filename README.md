@@ -26,14 +26,17 @@ If you're facing any issues, check the [Issue queue](https://github.com/rpsu/dvd
 **Example:** Assuming you have a DVD called "Family_vacation" you should have now a folder ```/Volumes/Family_vacation``` and a file  ```/Volumes/Family_vacation/VIDEO_TS/VIDEO_TS.VOB```.
 1. Create a target folder inside you Home directory. 
 **Example:** Create folder in ```~/Desktop/converted_videos```
-1. Use the script:  
-```$ bash converter.sh SRC DEST```  
+1. Use the script. Source (-s, --source), destination (-d, --destination) and 
+mode (-m, --mode) are required values. Optionally you may select the ```ffmpeg```
+conversion process verbosity with -v or --verbosity (default 'error') flags,
+and choose to blindly delete any existing target files with -o=1 (default  0). 
+```$ bash converter.sh --source=SRC --destination=DEST --mode=MP4```  
 **Example:** 
-```$ bash converter.sh Family_vacation Desktop/converted_videos```  
+```$ bash converter.sh --source=Family_vacation --destination=Desktop/converted_videos --mode=MP4,WEBM```  
 To  make sure to override any previously interrupted conversions:  
-```$ bash converter.sh Family_vacation Desktop/converted_videos 1```  
-To make conversion more verbose, set 4th argument to a valid [ffmpeg -loglevel](https://www.ffmpeg.org/ffmpeg.html#Generic-options) -value, such as 'info' (defaults to 'error'):  
-```$ bash converter.sh Family_vacation Desktop/converted_videos 1 info```  
+```$ bash converter.sh -s=Family_vacation -d=Desktop/converted_videos -m=WEBM -o=1 -v=info```  
+To make conversion more verbose, set verbosity -parameter to a valid [ffmpeg -loglevel](https://www.ffmpeg.org/ffmpeg.html#Generic-options) -value, such as 'info' (defaults to 'error'):  
+```$ bash converter.sh -s=Family_vacation -d=Desktop/converted_videos -m=MP4,WEBM,OGV -v=debug ```  
 
 ## Warning
 
