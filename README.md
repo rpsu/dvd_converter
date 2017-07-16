@@ -30,8 +30,10 @@ If you're facing any issues, check the [Issue queue](https://github.com/rpsu/dvd
 ```$ bash converter.sh SRC DEST```  
 **Example:** 
 ```$ bash converter.sh Family_vacation Desktop/converted_videos```  
-or to make sure to override any previously interrupted conversions:
+To  make sure to override any previously interrupted conversions:
 ```$ bash converter.sh Family_vacation Desktop/converted_videos 1```  
+To make conversion more verbose, set 4th argument to a valid ffmpeg -loglevel -value, such as 'info' (defaults to 'error').
+```$ bash converter.sh Family_vacation Desktop/converted_videos 1 info```  
 
 ## Warning
 
