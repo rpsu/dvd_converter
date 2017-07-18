@@ -84,9 +84,9 @@ if [ ! -d "$destination" ]; then
   exit 1
 fi
 
-if [ -z $MP4 ] && [ -z $WEBM ] && [ -z $OGG ]; then
+if [ -z $MP4 ] && [ -z $WEBM ] && [ -z $OGV ]; then
   echo "Error, value for --mode/-m is required."
-  echo "Allowed values are MP4, WEBM and OGG. Multiple values can be separated "
+  echo "Allowed values are MP4, WEBM and OGV. Multiple values can be separated "
   echo "with comma. "
   exit 1
 fi
@@ -140,10 +140,10 @@ if [ "$overwrite" == "1" ]; then
     echo "Remove $count x .webm files from $destination "  | tee -a $destination/dvd_$(echo $src).log
     rm -rf $destination/*.webm > /dev/null
   fi
-  if [ "$OGG" == "1" ]; then
-    count=$(ls -lh $destination/*.ogg | wc -l)
-    echo "Remove $count x .ogg files from $destination "  | tee -a $destination/dvd_$(echo $src).log
-    rm -rf $destination/*.ogg > /dev/null
+  if [ "$OGV" == "1" ]; then
+    count=$(ls -lh $destination/*.ogv | wc -l)
+    echo "Remove $count x .ogv files from $destination "  | tee -a $destination/dvd_$(echo $src).log
+    rm -rf $destination/*.ogv > /dev/null
   fi
 fi
 
@@ -200,24 +200,30 @@ for track in {1..99}; do
         echo "$trackname.webm not yet converted. Start working at $(date)."  | tee -a $destination/dvd_$(echo $src).log
         # Convert vidos to WEBM. 
         cmd="ffmpeg -v $verbosity -hide_banner -f concat -safe 0 -i "$track_parts_list" -c:v vp9 -b:v 1000k -c:a libmp3lame -b:a 128k -crf 10 -strict -2 $trackname.webm"
+        # SRC: http://diveintohtml5.info/video.html#webm-cli
+        ffmpeg -pass 1 -passlogfile pr6.dv -threads 16  -keyint_min 0 -g 250 -skip_threshold 0 -qmin 1 -qmax 51 -i pr6.dv -vcodec libvpx -b 614400 -s 320x240 -aspect 4:3 -an -y NUL
+        ffmpeg -pass 2 -passlogfile pr6.dv -threads 16  -keyint_min 0 -g 250 -skip_threshold 0 -qmin 1 -qmax 51 -i pr6.dv -vcodec libvpx -b 614400 -s 320x240 -aspect 4:3 -acodec libvorbis -y pr6.webm
+        # used: 
+        ffmpeg -v error -hide_banner -f concat -safe 0 -i /Users/PerttuEhn/Movies/DVD/1/dvd_nummi_dvd1_tracks_03.txt -pass 2 -passlogfile pr6.dv -threads 16  -keyint_min 0 -g 250 -skip_threshold 0 -qmin 1 -qmax 51  -c:v libvpx -v:b 614400 -s 720x576 -aspect 5:4 /Users/PerttuEhn/Movies/DVD/1/some-file.ogv
+        ffmpeg -v error -hide_banner -f concat -safe 0 -i /Users/PerttuEhn/Movies/DVD/1/dvd_nummi_dvd1_tracks_03.txt -pass 1 -passlogfile pr6.dv -threads 16  -keyint_min 0 -g 250 -skip_threshold 0 -qmin 1 -qmax 51  -c:v libvpx -v:b 614400 -s 720x576 -aspect 5:4 /Users/PerttuEhn/Movies/DVD/1/some-file.ogv
         echo $cmd | tee -a $destination/dvd_$(echo $src).log
         $cmd
         echo "$trackname.webm converted. Finished working at $(date)." | tee -a $destination/dvd_$(echo $src).log
       fi
     fi
     
-    if [ "$OGG" == "1" ]; then
-      ###  .OGG -format (slow, becase of re-encoding) ###
-      if [ -f $trackname.ogg ]; then
-        echo "$trackname.ogg exists already. Skipping..." | tee -a $destination/dvd_$(echo $src).log
-        echo "Please remove $trackname.ogg if you wish to re-convert your DVD to this format, OR set 3rd script parameter to 1."
+    if [ "$OGV" == "1" ]; then
+      ###  .ogv -format (slow, becase of re-encoding) ###
+      if [ -f $trackname.ogv ]; then
+        echo "$trackname.ogv exists already. Skipping..." | tee -a $destination/dvd_$(echo $src).log
+        echo "Please remove $trackname.ogv if you wish to re-convert your DVD to this format, OR set 3rd script parameter to 1."
         sleep 3
       else 
-        echo "$trackname.ogg not yet converted. Start working at $(date)." | tee -a $destination/dvd_$(echo $src).log
-        cmd="ffmpeg -v $verbosity -hide_banner -f concat -safe 0 -i "$track_parts_list" -c:v libvpx -crf 10 -b:v 1M -c:a libvorbis $trackname.ogg"
+        echo "$trackname.ogv not yet converted. Start working at $(date)." | tee -a $destination/dvd_$(echo $src).log
+        cmd="ffmpeg -v $verbosity -hide_banner -f concat -safe 0 -i "$track_parts_list" -c:v libvpx -crf 10 -b:v 1M -c:a libvorbis $trackname.ogv"
         echo $cmd | tee -a $destination/dvd_$(echo $src).log
         $cmd
-        echo "$trackname.ogg converted. Finished working at $(date)." | tee -a $destination/dvd_$(echo $src).log
+        echo "$trackname.ogv converted. Finished working at $(date)." | tee -a $destination/dvd_$(echo $src).log
       fi
     fi
   fi
