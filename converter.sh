@@ -51,6 +51,8 @@ fi
 
 # CONVERSION FLAGS. NOTE that you may convert DVD to different formats in a row.
 # Split string to an array. Assume comma-separated list.
+# Helpful partial string matching info found in
+# https://stackoverflow.com/a/15988793
 while [ "$MODE" ] ;do
   # Get the 1st comma separated item in the $MODE string. 
   ITEM=${MODE%%,*}
@@ -77,26 +79,27 @@ if [ ! -d "$src_dir" ]; then
   exit 1
 fi
 
+
+[ ! -d "$destination" ] &&   mkdir -p $destination >/dev/null
+
 if [ ! -d "$destination" ]; then
-  echo -e "${RED}ERROR: Target dir '$destination' does not exists."
-  echo "Your 2nd argument must be an existing folder inside your home directory, for example 'Desktop/convert' for /Volumes/$HOME/Desktop/convert."
-  echo -e "${NC}"
+  echo -e "${RED}ERROR: Target dir '$destination' did not valid, maybe it is a file?"
+  echo -e "Creating the target dir seems to be failed.${NC}"
   exit 1
 fi
 
 if [ -z $MP4 ] && [ -z $WEBM ] && [ -z $OGV ]; then
-  echo "Error, value for --mode/-m is required."
+  echo -e "${RED}Error, value for --mode/-m is required.${NC}"
   echo "Allowed values are MP4, WEBM and OGV. Multiple values can be separated "
   echo "with comma. "
   exit 1
 fi
 # 3rd argument is optional, but must be 1 (numeric one) if present.
 if [ ! -z "$overwrite" ] && [ "$overwrite" != "1" ] && [ "$overwrite" != "0" ]; then
-  echo -e "${RED}ERROR: Parameter error."
+  echo -e "${RED}ERROR: Parameter error.${NC}"
   echo "3rd parameter must be '1' or '0' if present. Feel free to omit it."
   echo "'1' means you will override any previously converted videos."
-  echo "${YLLW}** Be careful if you are using it! **${NC}"
-  echo -e "${NC}"
+  echo -e "${YLLW}** Be careful if you are using it! **${NC}"
   exit 1
 else
   if [ "$overwrite" == "1" ]; then
@@ -118,9 +121,8 @@ if [ $verbosity != 'quiet' ] &&
    [ $verbosity != 'verbose' ] &&
    [ $verbosity != 'debug' ] &&
    [ $verbosity != 'trace' ]; then
-  echo -e "${RED}ERROR: Verbosity level (4th argument) is not a valid value."
+  echo -e "${RED}ERROR: Verbosity level (4th argument) is not a valid value.${NC}"
   echo "See 'man ffmpeg' and '-loglevel' -argument for valid values. "
-  echo -e "${NC}"
   exit 1
 fi
 
@@ -153,24 +155,30 @@ for track in {1..99}; do
   if [ ${#track} == 1 ]; then
     track=0$(echo $track)
   fi
-  trackname="$destination/DVD_$(echo $src)_track_$(echo $track)"
-  track_parts_list="$destination/dvd_$(echo $src)_tracks_$(echo $track).txt"
+  trackname="$destination/$(echo $src)__trackno_$(echo $track)"
+  track_parts_list="$trackname.track_fragments.txt"
   list=$(ls $src_dir/VIDEO_TS/VTS_$(echo $track)_*.VOB 2>/dev/null )
-  echo -n "Working on DVD $src track $track... " | tee -a $destination/dvd_$(echo $src).log
-  if [ -z "$list" ]; then
-    echo "Nothing in $src_dir/VIDEO_TS/VTS_$(echo $track)_*.VOB" | tee -a $destination/dvd_$(echo $src).log
-  else
-    echo  | tee -a $destination/dvd_$(echo $src).log
+  [ ! -z $MP4 ] && CONVERSIONS=$(echo "$CONVERSIONS MP4,")
+  [ ! -z $OGV ] && CONVERSIONS=$(echo "$CONVERSIONS OGV,")
+  [ ! -z $WEBM ] && CONVERSIONS=$(echo "$CONVERSIONS WEBM,")
+  # Helpful partial string matching info found in
+  # https://stackoverflow.com/a/15988793
+  CONVERSIONS=${CONVERSIONS%,*}
+  
+  if [ ! -z "$list" ]; then
+    echo "Working on DVD $src track $track. Convertin to $CONVERSIONS. " | tee -a $destination/dvd_$(echo $src).log
+    rm -f $track_parts_list
     for f in $list; do
       echo "Found track $f"  | tee -a $destination/dvd_$(echo $src).log
       echo "file '$f'" >> $track_parts_list; 
     done
   fi
   if [ -f "$track_parts_list" ] && [ -r "$track_parts_list" ] && [ -s "$track_parts_list" ]; then
-    echo  "= = = = = =" | tee -a $destination/dvd_$(echo $src).log
-    echo  "Next the actual conversion, working with track info in $track_parts_list ... " | tee -a $destination/dvd_$(echo $src).log
+    echo -e "\n= = = = = =\n" | tee -a $destination/dvd_$(echo $src).log
+    echo  "Next the actual conversion job (per track, merging *track* parts into one track), working with track info in $track_parts_list ... " | tee -a $destination/dvd_$(echo $src).log
     sleep 3
     if [ "$MP4" == "1" ]; then
+      TRACK_START=$(date +%s)
       ### MPEG-4 ###
       # '-c copy' means video isn't decoded & encode (but just used the 
       #  stream as it is), since it is not loseless conversion.
@@ -181,13 +189,16 @@ for track in {1..99}; do
       else 
         echo "$trackname.mp4 not yet converted. Start working at $(date)." | tee -a $destination/dvd_$(echo $src).log
         cmd="ffmpeg -v $verbosity -hide_banner -f concat -safe 0 -i "$track_parts_list" -c copy -b:v 800k -b:a 128k -g 300 -bf 2  $trackname.mp4"
-        echo $cmd | tee -a $destination/dvd_$(echo $src).log
+        echo -e "Next executing this command:\n\$ $cmd" | tee -a $destination/dvd_$(echo $src).log
         $cmd
+        TRACK_DURATION=$(( $(date +%s) - $TRACK_START))
         echo "$trackname.mp4 converted. Finished working at $(date)." | tee -a $destination/dvd_$(echo $src).log
+        printf 'Track conversin took %dh:%dm:%ds\n' $(( $TRACK_DURATION / 3600 )) $(( $TRACK_DURATION%3600 / 60 )) $(( $TRACK_DURATION%60 )) | tee -a $destination/dvd_$(echo $src).log
       fi
     fi
     
     if [ "$WEBM" == "1" ]; then
+      TRACK_START=$(date +%s)
       ### .WEBM -format (slow, becase of re-encoding) ###
       # vp8 videe codec, audio as MP3
       # This will compress video a lot, 1Gb MPEG-2 video will become 150 MB 
@@ -196,34 +207,43 @@ for track in {1..99}; do
         echo "$trackname.webm exists already. Skipping..." | tee -a $destination/dvd_$(echo $src).log
         echo "Please remove $trackname.webm if you wish to re-convert your DVD to this format, OR set 3rd script parameter to 1."
         sleep 3
-      else 
+      else
         echo "$trackname.webm not yet converted. Start working at $(date)."  | tee -a $destination/dvd_$(echo $src).log
         # Convert vidos to WEBM. 
-        cmd="ffmpeg -v $verbosity -hide_banner -f concat -safe 0 -i "$track_parts_list" -c:v vp9 -b:v 1000k -c:a libmp3lame -b:a 128k -crf 10 -strict -2 $trackname.webm"
-        # SRC: http://diveintohtml5.info/video.html#webm-cli
-        ffmpeg -pass 1 -passlogfile pr6.dv -threads 16  -keyint_min 0 -g 250 -skip_threshold 0 -qmin 1 -qmax 51 -i pr6.dv -vcodec libvpx -b 614400 -s 320x240 -aspect 4:3 -an -y NUL
-        ffmpeg -pass 2 -passlogfile pr6.dv -threads 16  -keyint_min 0 -g 250 -skip_threshold 0 -qmin 1 -qmax 51 -i pr6.dv -vcodec libvpx -b 614400 -s 320x240 -aspect 4:3 -acodec libvorbis -y pr6.webm
-        # used: 
-        ffmpeg -v error -hide_banner -f concat -safe 0 -i /Users/PerttuEhn/Movies/DVD/1/dvd_nummi_dvd1_tracks_03.txt -pass 2 -passlogfile pr6.dv -threads 16  -keyint_min 0 -g 250 -skip_threshold 0 -qmin 1 -qmax 51  -c:v libvpx -v:b 614400 -s 720x576 -aspect 5:4 /Users/PerttuEhn/Movies/DVD/1/some-file.ogv
-        ffmpeg -v error -hide_banner -f concat -safe 0 -i /Users/PerttuEhn/Movies/DVD/1/dvd_nummi_dvd1_tracks_03.txt -pass 1 -passlogfile pr6.dv -threads 16  -keyint_min 0 -g 250 -skip_threshold 0 -qmin 1 -qmax 51  -c:v libvpx -v:b 614400 -s 720x576 -aspect 5:4 /Users/PerttuEhn/Movies/DVD/1/some-file.ogv
-        echo $cmd | tee -a $destination/dvd_$(echo $src).log
+        # @see http://diveintohtml5.info/video.html#webm-cli
+        # @see https://www.ffmpeg.org/ffmpeg.html
+        # @see https://www.ffmpeg.org/ffmpeg-codecs.html 
+        # 1st round for analyzing the content. No audio conversion required on
+        # the 1st round (hence the "-an" -parameter, and no audio codec ).
+        cmd="ffmpeg -v $verbosity -hide_banner -f concat -safe 0 -i "$track_parts_list" -pass 1 -passlogfile $trackname.webm -keyint_min 0 -g 250 -skip_threshold 0 -qmin 1 -qmax 51 -c:v libvpx -v:b 614400 -s 720x576 -aspect 5:4 -an -crf 10 -strict -2 -f webm -y /dev/null"
+        echo -e "Next executing this command:\n\$ $cmd" | tee -a $destination/dvd_$(echo $src).log
         $cmd
+        # 2nd round for the actual conversion. Now grab the audio, too, and set
+        # the final target file name (outfile).
+        cmd="ffmpeg -v $verbosity -hide_banner -f concat -safe 0 -i "$track_parts_list" -pass 2 -passlogfile $trackname.webm -keyint_min 0 -g 250 -skip_threshold 0 -qmin 1 -qmax 51 -c:v libvpx -v:b 614400 -c:a vorbis -b:a 128k -s 720x576 -aspect 5:4 -crf 10 -strict -2 $trackname.webm"
+        echo -e "Next executing this command:\n\$ $cmd" | tee -a $destination/dvd_$(echo $src).log
+        $cmd
+        TRACK_DURATION=$(( $(date +%s) - $TRACK_START))
         echo "$trackname.webm converted. Finished working at $(date)." | tee -a $destination/dvd_$(echo $src).log
+        printf 'Track conversin took %dh:%dm:%ds\n' $(( $TRACK_DURATION / 3600 )) $(( $TRACK_DURATION%3600 / 60 )) $(( $TRACK_DURATION%60 )) | tee -a $destination/dvd_$(echo $src).log
       fi
     fi
     
     if [ "$OGV" == "1" ]; then
+      TRACK_START=$(date +%s)
       ###  .ogv -format (slow, becase of re-encoding) ###
       if [ -f $trackname.ogv ]; then
         echo "$trackname.ogv exists already. Skipping..." | tee -a $destination/dvd_$(echo $src).log
         echo "Please remove $trackname.ogv if you wish to re-convert your DVD to this format, OR set 3rd script parameter to 1."
         sleep 3
-      else 
+      else
         echo "$trackname.ogv not yet converted. Start working at $(date)." | tee -a $destination/dvd_$(echo $src).log
         cmd="ffmpeg -v $verbosity -hide_banner -f concat -safe 0 -i "$track_parts_list" -c:v libvpx -crf 10 -b:v 1M -c:a libvorbis $trackname.ogv"
-        echo $cmd | tee -a $destination/dvd_$(echo $src).log
+        echo -e "Next executing this command:\n\$ $cmd" | tee -a $destination/dvd_$(echo $src).log
         $cmd
+        TRACK_DURATION=$(( $(date +%s) - $TRACK_START))
         echo "$trackname.ogv converted. Finished working at $(date)." | tee -a $destination/dvd_$(echo $src).log
+        printf 'Track conversin took %dh:%dm:%ds\n' $(( $TRACK_DURATION / 3600 )) $(( $TRACK_DURATION%3600 / 60 )) $(( $TRACK_DURATION%60 )) | tee -a $destination/dvd_$(echo $src).log
       fi
     fi
   fi
