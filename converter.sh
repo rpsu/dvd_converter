@@ -166,7 +166,7 @@ for track in {1..99}; do
   CONVERSIONS=${CONVERSIONS%,*}
   
   if [ ! -z "$list" ]; then
-    echo "Working on DVD $src track $track. Convertin to $CONVERSIONS. " | tee -a $destination/dvd_$(echo $src).log
+    echo "Working on DVD $src track $track. Converting to $CONVERSIONS. " | tee -a $destination/dvd_$(echo $src).log
     rm -f $track_parts_list
     for f in $list; do
       echo "Found track $f"  | tee -a $destination/dvd_$(echo $src).log
