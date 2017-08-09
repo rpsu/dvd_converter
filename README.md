@@ -36,11 +36,14 @@ If you're facing any issues, check the [Issue queue](https://github.com/rpsu/dvd
 Convert your _Family_vacation_ -DVD to both MP4 and WEBM video in one go:  
 ```$ bash converter.sh --source=Family_vacation --destination=Desktop/converted_videos --mode=MP4,WEBM```  
 
-Make sure any previously existing destination files are removed by using **-o** -flag:  
+Make sure any previously existing destination files are removed by using **-o** -flag (--overwrite):  
 ```$ bash converter.sh -s=Family_vacation -d=Desktop/converted_videos -m=MP4,WEBM -o=1```  
 
-To make conversion process more verbose, set **--verbosity** -parameter to a valid [ffmpeg -loglevel](https://www.ffmpeg.org/ffmpeg.html#Generic-options) -value, such as 'info' (default is 'error'). Also convert to OGG along with MP4 and WEBM:  
-```$ bash converter.sh -s=Family_vacation -d=Desktop/converted_videos -m=MP4,WEBM,OGG -v=debug ```  
+Choose output quality (does not affect MP4 mode at all) by using **-bv** -flag. By default conversion tries to use 10M as a bitrate (equals "-bv=100"), which should not lower the WEBM and OGG video quality compared to the original noticeable (--bitrate-video). This example tries to use less disk space in the expense of video quality:  
+```$ bash converter.sh -s=Family_vacation -d=Desktop/converted_videos -m=MP4,WEBM -o=1 -bv=10```  
+
+To make conversion process more verbose, set **-v** -parameter to a valid [ffmpeg -loglevel](https://www.ffmpeg.org/ffmpeg.html#Generic-options) -value, such as 'info' (default is 'error'). Also convert to OGG along with MP4 and WEBM (--verbosity):  
+```$ bash converter.sh -s=Family_vacation -d=Desktop/converted_videos -m=MP4,WEBM,OGG -v=debug -bv=100 ```  
 
 ## Warning
 

@@ -37,6 +37,9 @@ while [ $# -gt 0 ]; do
     -v=*|--verbosity=*)
         verbosity="${1#*=}"
         ;;
+    -bv=*|--bitrate-video=*)
+        brv="${1#*=}"
+        ;;
     *)
     echo "Error, invalid argument '$1'."
     exit 1
@@ -68,6 +71,27 @@ done
 
 if [ -z $verbosity ]; then
   verbosity="error"
+fi
+
+if [ "$brv" -eq "$brv" ] 2>/dev/null; then 
+  if [ -z $brv ]; then
+    brv=100
+  fi
+  
+  if [ "$brv" -gt "0" ] && [ "$brv" -le "100" ]; then  
+    bv=$(( $brv * 10 / 100 ))
+    mr=$(( $brv * 20 / 100 ))
+    bs=$(( $brv * 60 / 100 ))
+    bitrate_video="-b:v "$bv"M -maxrate "$mr"M -bufsize "$bs"M" 
+  else
+    echo -e "${RED}ERROR: Argument '--bitrate-video / -bv' must be an integer between 1-100."
+    echo -e "${NC}"
+    exit 1
+  fi
+else
+  echo -e "${RED}ERROR: Argument '--bitrate-video / -bv' must be an integer between 1-100."
+  echo -e "${NC}"
+  exit 1
 fi
 
 # Make sure we have 2 requiree arguments. 
@@ -200,7 +224,7 @@ for track in {1..99}; do
         echo "$trackname.mp4 not yet converted. Start working at $(date)." | tee -a $destination/dvd_$(echo $src).log
         cmd="ffmpeg -v $verbosity -hide_banner -f concat -safe 0 -i "$track_parts_list" "
         cmd=$cmd"-c copy "
-        cmd=$cmd"-b:v 10M -qmin 10 -qmax 42 -maxrate 20M -bufsize 60M "
+        cmd=$cmd"$bitrate_video -qmin 10 -qmax 42 "
         cmd=$cmd"-keyint_min 0 -g 250 -skip_threshold 0 "
         cmd=$cmd"-b:a 128k "
         cmd=$cmd"-bf 2 "
@@ -236,7 +260,7 @@ for track in {1..99}; do
         cmd="ffmpeg -v $verbosity -hide_banner -f concat -safe 0 -i "$track_parts_list" "
         cmd=$cmd"-pass 1 -passlogfile $trackname.webm "
         cmd=$cmd"-quality good -cpu-used 0 -strict -1 "
-        cmd=$cmd"-b:v 10M -qmin 10 -qmax 42 -maxrate 20M -bufsize 60M "
+        cmd=$cmd"$bitrate_video -qmin 10 -qmax 42 "
         # cmd=$cmd"-threads 4 "
         cmd=$cmd"-keyint_min 0 -g 250 -skip_threshold 0 "
         cmd=$cmd"-vbr 1 "
@@ -254,7 +278,7 @@ for track in {1..99}; do
         cmd="ffmpeg -v $verbosity -hide_banner -f concat -safe 0 -i "$track_parts_list" "
         cmd=$cmd"-pass 2 -passlogfile $trackname.webm "
         cmd=$cmd"-quality good -cpu-used 0 -strict -1 "
-        cmd=$cmd"-b:v 10M -qmin 10 -qmax 42 -maxrate 20M -bufsize 60M "
+        cmd=$cmd"$bitrate_video -qmin 10 -qmax 42 "
         # cmd=$cmd" -threads 4 "
         cmd=$cmd"-keyint_min 0 -g 250 -skip_threshold 0 "
         cmd=$cmd"-vbr 1 "
@@ -283,7 +307,7 @@ for track in {1..99}; do
         echo "$trackname.ogv not yet converted. Start working at $(date)." | tee -a $destination/dvd_$(echo $src).log
         cmd="ffmpeg -v $verbosity -hide_banner -f concat -safe 0 -i "$track_parts_list" "
         cmd=$cmd"-c:v libvpx "
-        cmd=$cmd"-b:v 10M -qmin 10 -qmax 42 -maxrate 20M -bufsize 60M "
+        cmd=$cmd"$bitrate_video -qmin 10 -qmax 42 "
         cmd=$cmd"-crf 25 "
         cmd=$cmd"-c:a libvorbis  "
         cmd=$cmd"-s $size -aspect $aspect "
