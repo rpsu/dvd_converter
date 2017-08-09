@@ -133,17 +133,17 @@ rm -f $destination/dvd_$(echo $src).log
 # If so requested, remove old converted files.
 if [ "$overwrite" == "1" ]; then
   if [ "$MP4" == "1" ]; then
-    count=$(ls -lh $destination/*.mp4 | wc -l)
+    count=$(ls -lh $destination/*.mp4 2>/dev/null | wc -l)
     echo "Remove $count x .mp4 files from $destination " | tee -a $destination/dvd_$(echo $src).log
     rm -rf $destination/*.mp4 > /dev/null
   fi
   if [ "$WEBM" == "1" ]; then
-    count=$(ls -lh $destination/*.webm | wc -l)
+    count=$(ls -lh $destination/*.webm 2>/dev/null | wc -l)
     echo "Remove $count x .webm files from $destination "  | tee -a $destination/dvd_$(echo $src).log
     rm -rf $destination/*.webm > /dev/null
   fi
   if [ "$OGV" == "1" ]; then
-    count=$(ls -lh $destination/*.ogv | wc -l)
+    count=$(ls -lh $destination/*.ogv 2>/dev/null | wc -l)
     echo "Remove $count x .ogv files from $destination "  | tee -a $destination/dvd_$(echo $src).log
     rm -rf $destination/*.ogv > /dev/null
   fi
