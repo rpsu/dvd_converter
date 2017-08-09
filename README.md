@@ -47,7 +47,9 @@ To make conversion process more verbose, set **-v** -parameter to a valid [ffmpe
 
 ## Warning
 
-Please note, that *converting* videos will take time and effort from your computer. As an example fairly recent MacBook laptop spent some 30 hours converting DVD (with mpeg2video) to WEBM  - converted track was approximately 22 minutes long. On the other hand "conversion" to MPEG-4 video is actually just a copy of the original DVD track, so it took around one minute.
+Please note, that *converting* videos will take time and effort from your computer. As an example fairly recent MacBook laptop spends some 5-30 hours converting DVD (with mpeg2video) to WEBM  - converted track was approximately 22 minutes long. Time spent depends heavily on end result compression - higher '-bv' -values compress and calculate less, and are faster with higher quality but bigger result file sizes.
+
+On the other hand "conversion" to MPEG-4 video is actually just a copy of the original DVD track, so it takes just a couple of minutes usually.
 
 ## References
 
