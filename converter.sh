@@ -173,7 +173,17 @@ for track in {1..99}; do
       echo "file '$f'" >> $track_parts_list; 
     done
   fi
+
   if [ -f "$track_parts_list" ] && [ -r "$track_parts_list" ] && [ -s "$track_parts_list" ]; then
+    # Figure out the original size. Withouth that some of the conversion won't end
+    # up usign the same ration (but actual data yes, just the ration will be
+    # wrong).
+    first_track=$(head -1 $track_parts_list | sed -e "s/^file '//" -e "s/'$//")
+    height=$(ffprobe -v error -of flat=s=_ -select_streams v:0 -show_entries stream=height -of default=noprint_wrappers=1:nokey=1 $first_track)
+    width=$(ffprobe -v error -of flat=s=_ -select_streams v:0 -show_entries stream=width -of default=noprint_wrappers=1:nokey=1 $first_track)
+    size="${width}x${height}"
+    aspect=`echo "$width / $height" | bc -l`
+
     echo -e "\n= = = = = =\n" | tee -a $destination/dvd_$(echo $src).log
     echo  "Next the actual conversion job (per track, merging *track* parts into one track), working with track info in $track_parts_list ... " | tee -a $destination/dvd_$(echo $src).log
     sleep 3
@@ -188,7 +198,14 @@ for track in {1..99}; do
         sleep 3
       else 
         echo "$trackname.mp4 not yet converted. Start working at $(date)." | tee -a $destination/dvd_$(echo $src).log
-        cmd="ffmpeg -v $verbosity -hide_banner -f concat -safe 0 -i "$track_parts_list" -c copy -b:v 800k -b:a 128k -g 300 -bf 2  $trackname.mp4"
+        cmd="ffmpeg -v $verbosity -hide_banner -f concat -safe 0 -i "$track_parts_list" "
+        cmd=$cmd"-c copy "
+        cmd=$cmd"-b:v 10M -qmin 10 -qmax 42 -maxrate 20M -bufsize 60M "
+        cmd=$cmd"-keyint_min 0 -g 250 -skip_threshold 0 "
+        cmd=$cmd"-b:a 128k "
+        cmd=$cmd"-bf 2 "
+        cmd=$cmd"-s $size -aspect $aspect "
+        cmd=$cmd"$trackname.mp4"
         echo -e "Next executing this command:\n\$ $cmd" | tee -a $destination/dvd_$(echo $src).log
         $cmd
         TRACK_DURATION=$(( $(date +%s) - $TRACK_START))
@@ -213,14 +230,40 @@ for track in {1..99}; do
         # @see http://diveintohtml5.info/video.html#webm-cli
         # @see https://www.ffmpeg.org/ffmpeg.html
         # @see https://www.ffmpeg.org/ffmpeg-codecs.html 
+        # @see https://www.webmproject.org/docs/encoder-parameters/
         # 1st round for analyzing the content. No audio conversion required on
         # the 1st round (hence the "-an" -parameter, and no audio codec ).
-        cmd="ffmpeg -v $verbosity -hide_banner -f concat -safe 0 -i "$track_parts_list" -pass 1 -passlogfile $trackname.webm -keyint_min 0 -g 250 -skip_threshold 0 -qmin 1 -qmax 51 -c:v libvpx -v:b 614400 -s 720x576 -aspect 5:4 -an -crf 10 -strict -2 -f webm -y /dev/null"
+        cmd="ffmpeg -v $verbosity -hide_banner -f concat -safe 0 -i "$track_parts_list" "
+        cmd=$cmd"-pass 1 -passlogfile $trackname.webm "
+        cmd=$cmd"-quality good -cpu-used 0 -strict -1 "
+        cmd=$cmd"-b:v 10M -qmin 10 -qmax 42 -maxrate 20M -bufsize 60M "
+        # cmd=$cmd"-threads 4 "
+        cmd=$cmd"-keyint_min 0 -g 250 -skip_threshold 0 "
+        cmd=$cmd"-vbr 1 "
+        cmd=$cmd"-nr 6 "
+        cmd=$cmd"-nr 3 "
+        cmd=$cmd"-crf 25 "
+        cmd=$cmd"-c:v libvpx -v:b 614400 "
+        cmd=$cmd"-an "
+        cmd=$cmd"-s $size -aspect $aspect "
+        cmd=$cmd"-f webm -y /dev/null"
         echo -e "Next executing this command:\n\$ $cmd" | tee -a $destination/dvd_$(echo $src).log
         $cmd
         # 2nd round for the actual conversion. Now grab the audio, too, and set
         # the final target file name (outfile).
-        cmd="ffmpeg -v $verbosity -hide_banner -f concat -safe 0 -i "$track_parts_list" -pass 2 -passlogfile $trackname.webm -keyint_min 0 -g 250 -skip_threshold 0 -qmin 1 -qmax 51 -c:v libvpx -v:b 614400 -c:a vorbis -b:a 128k -s 720x576 -aspect 5:4 -crf 10 -strict -2 $trackname.webm"
+        cmd="ffmpeg -v $verbosity -hide_banner -f concat -safe 0 -i "$track_parts_list" "
+        cmd=$cmd"-pass 2 -passlogfile $trackname.webm "
+        cmd=$cmd"-quality good -cpu-used 0 -strict -1 "
+        cmd=$cmd"-b:v 10M -qmin 10 -qmax 42 -maxrate 20M -bufsize 60M "
+        # cmd=$cmd" -threads 4 "
+        cmd=$cmd"-keyint_min 0 -g 250 -skip_threshold 0 "
+        cmd=$cmd"-vbr 1 "
+        cmd=$cmd"-nr 3 "
+        cmd=$cmd"-crf 25 "
+        cmd=$cmd"-c:v libvpx -v:b 614400 "
+        cmd=$cmd"-c:a libvorbis -b:a 128k "
+        cmd=$cmd"-s $size -aspect $aspect "
+        cmd=$cmd" $trackname.webm"
         echo -e "Next executing this command:\n\$ $cmd" | tee -a $destination/dvd_$(echo $src).log
         $cmd
         TRACK_DURATION=$(( $(date +%s) - $TRACK_START))
@@ -238,7 +281,13 @@ for track in {1..99}; do
         sleep 3
       else
         echo "$trackname.ogv not yet converted. Start working at $(date)." | tee -a $destination/dvd_$(echo $src).log
-        cmd="ffmpeg -v $verbosity -hide_banner -f concat -safe 0 -i "$track_parts_list" -c:v libvpx -crf 10 -b:v 1M -c:a libvorbis $trackname.ogv"
+        cmd="ffmpeg -v $verbosity -hide_banner -f concat -safe 0 -i "$track_parts_list" "
+        cmd=$cmd"-c:v libvpx "
+        cmd=$cmd"-b:v 10M -qmin 10 -qmax 42 -maxrate 20M -bufsize 60M "
+        cmd=$cmd"-crf 25 "
+        cmd=$cmd"-c:a libvorbis  "
+        cmd=$cmd"-s $size -aspect $aspect "
+        cmd=$cmd"$trackname.ogv"
         echo -e "Next executing this command:\n\$ $cmd" | tee -a $destination/dvd_$(echo $src).log
         $cmd
         TRACK_DURATION=$(( $(date +%s) - $TRACK_START))
