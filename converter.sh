@@ -80,7 +80,7 @@ if [ ! -d "$src_dir" ]; then
 fi
 
 
-[ ! -d "$destination" ] &&   mkdir -p $destination >/dev/null
+[ ! -d "$destination" ] &&  mkdir -p $destination >/dev/null
 
 if [ ! -d "$destination" ]; then
   echo -e "${RED}ERROR: Target dir '$destination' did not valid, maybe it is a file?"
